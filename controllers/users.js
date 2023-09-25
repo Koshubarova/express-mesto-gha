@@ -7,19 +7,22 @@ module.exports.getUsers = (req, res) => {
 };
 
 module.exports.getUserById = (req, res) => {
-  if (req.params.userId.length === 24) {
-    User.findById(req.params.userId)
-      .then((user) => {
-        if (!user) {
-          res.status(404).send({ message: 'Пользователь не найден' });
-          return;
-        }
-        res.send(user);
-      })
-      .catch(() => res.status(404).send({ message: 'Пользователь не найден' }));
-  } else {
-    res.status(400).send({ message: 'Некорректный запрос' });
-  }
+  User.findById(req.params.userId)
+    .orFail()
+    .then((user) => {
+      if (!user) {
+        res.status(404).send({ message: 'Пользователь не найден' });
+        return;
+      }
+      res.send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Некорректный запрос' });
+      } else {
+        res.status(500).send({ message: 'На сервере произошла ошибка' });
+      }
+    });
 };
 
 module.exports.addUser = (req, res) => {
