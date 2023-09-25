@@ -10,16 +10,15 @@ module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
     .orFail()
     .then((user) => {
-      if (!user) {
-        res.status(404).send({ message: 'Пользователь не найден' });
-        return;
-      }
       res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Некорректный запрос' });
-      } else {
+      } else if (err.name === 'DocumentNotFoundError') {
+        res.status(404).send({ message: 'Пользователь не найден' });
+      }
+      else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
     });
