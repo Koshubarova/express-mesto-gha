@@ -17,8 +17,7 @@ module.exports.getUserById = (req, res) => {
         res.status(400).send({ message: 'Некорректный запрос' });
       } else if (err.name === 'DocumentNotFoundError') {
         res.status(404).send({ message: 'Пользователь не найден' });
-      }
-      else {
+      } else {
         res.status(500).send({ message: 'На сервере произошла ошибка' });
       }
     });
