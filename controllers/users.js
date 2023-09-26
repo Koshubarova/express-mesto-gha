@@ -44,8 +44,10 @@ module.exports.editUser = (req, res) => {
       .catch((err) => {
         if (err.name === 'ValidationError') {
           res.status(400).send({ message: 'Ошибка валидации' });
-        } else {
+        } else if (err.name === 'DocumentNotFoundError') {
           res.status(404).send({ message: 'Пользователь не найден' });
+        } else {
+          res.status(500).send({ message: 'На сервере произошла ошибка' });
         }
       });
   } else {
@@ -60,8 +62,10 @@ module.exports.editUserAvatar = (req, res) => {
       .catch((err) => {
         if (err.name === 'ValidationError') {
           res.status(400).send({ message: 'Ошибка валидации' });
-        } else {
+        } else if (err.name === 'DocumentNotFoundError') {
           res.status(404).send({ message: 'Пользователь не найден' });
+        } else {
+          res.status(500).send({ message: 'На сервере произошла ошибка' });
         }
       });
   } else {
