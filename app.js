@@ -8,7 +8,7 @@ const helmet = require('helmet');
 
 const { PORT = 3000, DB_URL = 'mongodb://127.0.0.1:27017/mestodb' } = process.env;
 
-const { createUser, login } = require('./controllers/users');
+const { addUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 
 const app = express();
@@ -36,12 +36,11 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().uri(),
+    avatar: Joi.string().pattern(/^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=.]+$/),
     email: Joi.string().required(),
     password: Joi.string().required(),
   }),
-
-}), createUser);
+}), addUser);
 
 app.use(auth);
 app.use('/', require('./routes/users'));
