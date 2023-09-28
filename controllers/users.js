@@ -56,7 +56,7 @@ module.exports.getUserMe = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.addUser = (req, res) => {
+module.exports.addUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -68,12 +68,16 @@ module.exports.addUser = (req, res) => {
       name: user.name, about: user.about, avatar: user.avatar, _id: user._id, email: user.email,
     }))
     .catch((err) => {
+      console.log(err.name);
+      console.log(err.code);
+      console.log('1');
       if (err.code === 11000) {
-        res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' });
+        next(res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' }));
       } else if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Ошибка валидации' });
+        next(res.status(400).send({ message: 'Ошибка валидации' }));
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        // res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
