@@ -69,7 +69,7 @@ module.exports.addUser = (req, res) => {
     }))
     .catch((err) => {
       if (err.code === 11000) {
-        res.status(401).send({ message: 'Пользователь с таким email уже зарегистрирован' });
+        res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' });
       } else if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Ошибка валидации' });
       } else {
