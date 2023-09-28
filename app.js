@@ -42,12 +42,13 @@ app.post('/signup', celebrate({
   }),
 }), addUser);
 
+app.use(auth);
+app.use('/', require('./routes/users'));
+app.use('/', require('./routes/cards'));
+
 app.use('/*', (req, res) => {
   res.status(404).send({ message: 'Страница не найдена' });
 });
-
-app.use('/', auth, require('./routes/users'));
-app.use('/', auth, require('./routes/cards'));
 
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
