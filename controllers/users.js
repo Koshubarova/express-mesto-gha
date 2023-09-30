@@ -7,10 +7,11 @@ module.exports.login = (req, res) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const { NODE_ENV, JWT_SECRET } = process.env;
+      // const { NODE_ENV, JWT_SECRET } = process.env;
       const token = jwt.sign(
         { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        // NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        'mesto',
         { expiresIn: '7d' },
       );
 
@@ -24,6 +25,7 @@ module.exports.login = (req, res) => {
     })
     .catch((err) => {
       res.status(401).send({ message: err.message });
+      // next(err);
     });
 };
 
@@ -68,16 +70,16 @@ module.exports.addUser = (req, res, next) => {
       name: user.name, about: user.about, avatar: user.avatar, _id: user._id, email: user.email,
     }))
     .catch((err) => {
-      console.log(err.name);
-      console.log(err.code);
-      console.log('1');
+      // console.log(err.name);
+      // console.log(err.code);
+      // console.log('1');
       if (err.code === 11000) {
-        next(res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' }));
+        res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' });
       } else if (err.name === 'ValidationError') {
-        next(res.status(400).send({ message: 'Ошибка валидации' }));
+        res.status(400).send({ message: 'Ошибка валидации' });
       } else {
-        // res.status(500).send({ message: 'На сервере произошла ошибка' });
-        next(err);
+        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        // next(err);
       }
     });
 };
