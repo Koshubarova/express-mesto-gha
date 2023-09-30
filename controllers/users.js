@@ -54,7 +54,7 @@ module.exports.getUserById = (req, res) => {
 
 module.exports.getUserMe = (req, res, next) => {
   User.findById(req.user._id)
-    .then((users) => res.status(201).send(users))
+    .then((user) => res.status(201).send(user))
     .catch(next);
 };
 
@@ -78,8 +78,8 @@ module.exports.addUser = (req, res, next) => {
       } else if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Ошибка валидации' });
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
-        // next(err);
+        // res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };

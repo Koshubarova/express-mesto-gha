@@ -8,12 +8,12 @@ const {
 router.get('/users', getUsers);
 
 router.get('/users/:userId', celebrate({
-  body: Joi.object().keys({
-    _id: Joi.string().required(),
+  params: Joi.object().keys({
+    _id: Joi.string().required().length(24).hex(),
   }),
 }), getUserById);
 
-router.get('/me', getUserMe);
+router.get('/users/me', getUserMe);
 
 // router.post('/users', addUser);
 
@@ -27,8 +27,7 @@ router.patch('/users/me', celebrate({
 
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().uri(),
-
+    avatar: Joi.string().required(),
   }),
 }), editUserAvatar);
 

@@ -1,3 +1,4 @@
+// const { forbidden } = require('joi');
 const Card = require('../models/card');
 
 module.exports.getCards = (req, res) => {
@@ -25,19 +26,33 @@ module.exports.addCard = (req, res) => {
     });
 };
 
-module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail()
-    .then(() => {
-      res.send({ message: 'Карточка успешно удалена' });
+module.exports.deleteCard = (req, res, next) => {
+  Card.findById(req.params.cardId)
+    .then((card) => {
+      if (!card.owner.equals(req.user._id)) {
+        // throw new forbiddenError('Карточка другого пользователя');
+        res.status(403).send({ message: 'Карточка другого пользователя' });
+      }
+      Card.deleteOne(card)
+        .orFail()
+        .then(() => {
+          res.send({ message: 'Карточка успешно удалена' });
+        })
+        .catch((err) => {
+          if (err.name === 'CastError') {
+            res.status(400).send({ message: 'Некорректный запрос' });
+          } else if (err.name === 'DocumentNotFoundError') {
+            res.status(404).send({ message: 'Карточка не найдена' });
+          } else {
+            res.status(500).send({ message: 'На сервере произошла ошибка' });
+          }
+        });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректный запрос' });
-      } else if (err.name === 'DocumentNotFoundError') {
+      if (err.name === 'TypeError') {
         res.status(404).send({ message: 'Карточка не найдена' });
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
