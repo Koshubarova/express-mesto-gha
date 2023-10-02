@@ -1,8 +1,11 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ConflictError = require('../errors/ConflictError');
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findUserByCredentials(email, password)
@@ -21,9 +24,7 @@ module.exports.login = (req, res) => {
 
       res.send({ token });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 module.exports.getUsers = (req, res, next) => {
@@ -40,9 +41,9 @@ module.exports.getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректный запрос' });
+        next(new BadRequestError('Некорректный запрос'));
       } else if (err.name === 'DocumentNotFoundError') {
-        res.status(404).send({ message: 'Пользователь не найден' });
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         next(err);
       }
@@ -68,9 +69,9 @@ module.exports.addUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.code === 11000) {
-        res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' });
+        next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
       } else if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Ошибка валидации' });
+        next(new BadRequestError('Ошибка валидации'));
       } else {
         next(err);
       }
@@ -84,9 +85,9 @@ module.exports.editUser = (req, res, next) => {
       .then((user) => res.send(user))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          res.status(400).send({ message: 'Ошибка валидации' });
+          next(new BadRequestError('Ошибка валидации'));
         } else if (err.name === 'DocumentNotFoundError') {
-          res.status(404).send({ message: 'Пользователь не найден' });
+          next(new NotFoundError('Пользователь не найден'));
         } else {
           next(err);
         }
@@ -102,9 +103,9 @@ module.exports.editUserAvatar = (req, res, next) => {
       .then((user) => res.send(user))
       .catch((err) => {
         if (err.name === 'ValidationError') {
-          res.status(400).send({ message: 'Ошибка валидации' });
+          next(new BadRequestError('Ошибка валидации'));
         } else if (err.name === 'DocumentNotFoundError') {
-          res.status(404).send({ message: 'Пользователь не найден' });
+          next(new NotFoundError('Пользователь не найден'));
         } else {
           next(err);
         }
