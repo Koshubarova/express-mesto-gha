@@ -7,11 +7,10 @@ module.exports.login = (req, res) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      // const { NODE_ENV, JWT_SECRET } = process.env;
+      const { NODE_ENV, JWT_SECRET } = process.env;
       const token = jwt.sign(
         { _id: user._id },
-        // NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
-        'mesto',
+        NODE_ENV === 'production' ? JWT_SECRET : 'secret-key',
         { expiresIn: '7d' },
       );
 
@@ -53,9 +52,6 @@ module.exports.getUserById = (req, res, next) => {
 };
 
 module.exports.getUserMe = (req, res, next) => {
-  // console.log(req);
-  // console.log(req.user);
-  // console.log(req.user._id);
   User.findById(req.user._id)
     .then((user) => res.status(201).send(user))
     .catch(next);
@@ -73,9 +69,6 @@ module.exports.addUser = (req, res, next) => {
       name: user.name, about: user.about, avatar: user.avatar, _id: user._id, email: user.email,
     }))
     .catch((err) => {
-      // console.log(err.name);
-      // console.log(err.code);
-      // console.log('1');
       if (err.code === 11000) {
         res.status(409).send({ message: 'Пользователь с таким email уже зарегистрирован' });
       } else if (err.name === 'ValidationError') {
