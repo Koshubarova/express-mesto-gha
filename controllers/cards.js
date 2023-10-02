@@ -1,27 +1,33 @@
-// const { forbidden } = require('joi');
 const Card = require('../models/card');
 
-module.exports.getCards = (req, res) => {
+module.exports.getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.addCard = (req, res) => {
+module.exports.addCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       Card.findById(card._id)
+        .orFail()
         .populate('owner')
         .then((data) => res.status(201).send(data))
-        .catch(() => res.status(404).send({ message: 'Карточка не найдена' }));
+        .catch((err) => {
+          if (err.name === 'DocumentNotFoundError') {
+            res.status(404).send({ message: 'Карточка не найдена' });
+          } else {
+            next(err);
+          }
+        });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Ошибка валидации' });
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
@@ -44,7 +50,7 @@ module.exports.deleteCard = (req, res, next) => {
           } else if (err.name === 'DocumentNotFoundError') {
             res.status(404).send({ message: 'Карточка не найдена' });
           } else {
-            res.status(500).send({ message: 'На сервере произошла ошибка' });
+            next(err);
           }
         });
     })
@@ -57,7 +63,7 @@ module.exports.deleteCard = (req, res, next) => {
     });
 };
 
-module.exports.likeCard = (req, res) => {
+module.exports.likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .orFail()
     .populate(['owner', 'likes'])
@@ -70,12 +76,12 @@ module.exports.likeCard = (req, res) => {
       } else if (err.name === 'DocumentNotFoundError') {
         res.status(404).send({ message: 'Карточка не найдена' });
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
 
-module.exports.dislikeCard = (req, res) => {
+module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .orFail()
     .populate(['owner', 'likes'])
@@ -88,7 +94,7 @@ module.exports.dislikeCard = (req, res) => {
       } else if (err.name === 'DocumentNotFoundError') {
         res.status(404).send({ message: 'Карточка не найдена' });
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };

@@ -29,17 +29,17 @@ module.exports.login = (req, res) => {
     });
 };
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'На сервере произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail()
     .then((user) => {
-      res.send(user);
+      res.status(201).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -47,12 +47,15 @@ module.exports.getUserById = (req, res) => {
       } else if (err.name === 'DocumentNotFoundError') {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
-        res.status(500).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
 
 module.exports.getUserMe = (req, res, next) => {
+  // console.log(req);
+  // console.log(req.user);
+  // console.log(req.user._id);
   User.findById(req.user._id)
     .then((user) => res.status(201).send(user))
     .catch(next);
@@ -84,7 +87,7 @@ module.exports.addUser = (req, res, next) => {
     });
 };
 
-module.exports.editUser = (req, res) => {
+module.exports.editUser = (req, res, next) => {
   const { name, about } = req.body;
   if (req.user._id) {
     User.findByIdAndUpdate(req.user._id, { name, about }, { new: 'true', runValidators: true })
@@ -95,15 +98,15 @@ module.exports.editUser = (req, res) => {
         } else if (err.name === 'DocumentNotFoundError') {
           res.status(404).send({ message: 'Пользователь не найден' });
         } else {
-          res.status(500).send({ message: 'На сервере произошла ошибка' });
+          next(err);
         }
       });
   } else {
-    res.status(500).send({ message: 'На сервере произошла ошибка' });
+    next();
   }
 };
 
-module.exports.editUserAvatar = (req, res) => {
+module.exports.editUserAvatar = (req, res, next) => {
   if (req.user._id) {
     User.findByIdAndUpdate(req.user._id, { avatar: req.body.avatar }, { new: 'true', runValidators: true })
       .then((user) => res.send(user))
@@ -113,10 +116,10 @@ module.exports.editUserAvatar = (req, res) => {
         } else if (err.name === 'DocumentNotFoundError') {
           res.status(404).send({ message: 'Пользователь не найден' });
         } else {
-          res.status(500).send({ message: 'На сервере произошла ошибка' });
+          next(err);
         }
       });
   } else {
-    res.status(500).send({ message: 'На сервере произошла ошибка' });
+    next();
   }
 };
